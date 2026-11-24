@@ -95,10 +95,25 @@ class MainActivity : ComponentActivity() {
             return
         }
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        // 没有悬浮窗权限时不挡着用，只是没有「重选系统」按钮。
-        if (Settings.canDrawOverlays(this)) showOverlay()
+        // 「重选系统」按钮要浮在别的 App 上面，第一次用之前请用户开一下权限。
+        if (Settings.canDrawOverlays(this)) {
+            showOverlay()
+        } else {
+            requestOverlayPermission()
+        }
         runCatching { startActivity(intent) }
             .onFailure { Toast.makeText(this, "打不开：${it.message}", Toast.LENGTH_SHORT).show() }
+    }
+
+    /** 申请「显示在其他应用上层」：开一次以后就一直有「重选系统」按钮。 */
+    private fun requestOverlayPermission() {
+        Toast.makeText(this, "开启「显示在其他应用上层」后，连接页上会出现「重选系统」按钮", Toast.LENGTH_LONG).show()
+        runCatching {
+            startActivity(
+                Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        }
     }
 
     /** 顶部居中的「重选系统」小胶囊：点一下回到选择页。 */
