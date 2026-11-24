@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.AllCarPlay" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#FF0B0F14</item>
+        <item name="android:statusBarColor">#FF0B0F14</item>
+        <item name="android:navigationBarColor">#FF0B0F14</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>
