@@ -1,10 +1,9 @@
-# CarPlay 子系统（0.2.22）
+# CarPlay 子系统（0.2.22，源码构建）
 
-车机端 CarPlay 接收程序，包名 `xielinyan.carplay.com`，入口 `com.shilapi.xcertplay.DiPlayActivity`。
-自 0.2.22 起在 AllCarPlay 里作为「苹果IOS」卡片的目标。
+源码：`/Users/xielinyan/dev/diplay-src` 的 `mobile` 模块（DiPlay 二次开发，applicationId `xielinyan.carplay.com`）。
+本目录放的是从源码构建出的安装包。
 
-- 版本信息行文字：`公开预览` → `当前版本`（resources.arsc 同长度原位替换）
-- 版本号：`0.2.22-hud-test` → `0.2.22`（AndroidManifest versionName，尾部补空格保持字串池长度不变）
-- 其余代码与原包一致；重签用 `~/.android/debug.keystore`，与旧版签名相同，可覆盖安装。
-
-发布文件：`CarPlay-0.2.22.apk`。
+相对上游 DiPlay 的改动：
+- `common/.../values-zh-rCN/strings.xml`：`home_public_preview` / `about_public_preview_prefix` 的「公开预览」改为「当前版本」。
+- `mobile/build.gradle.kts`：debug 构建去掉 `versionNameSuffix = "-hud-test"`，版本显示 `0.2.22`。
+- `common/.../DiPlayActivity.kt` 的 `standardHeader()`：首页在「车机主页」按钮左边新增「重选系统」按钮，复用 `headerButton()`（同高、同圆角、同图标 tint），点击跳 `com.xielinyan.allcarplay/.MainActivity`。
