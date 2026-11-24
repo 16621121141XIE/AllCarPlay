@@ -16,6 +16,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,10 +40,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color as ComposeColor
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -96,11 +99,14 @@ class MainActivity : ComponentActivity() {
             return
         }
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        // 「重选系统」按钮要浮在别的 App 上面，第一次用之前请用户开一下权限。
-        if (Settings.canDrawOverlays(this)) {
-            showOverlay()
-        } else {
-            requestOverlayPermission()
+        // HmCar 自带「重选系统」按钮（在设置左边）；CarPlay 只能在它首页右上角挂一个同样样式的浮层。
+        val needOverlay = index == 1
+        if (needOverlay) {
+            if (Settings.canDrawOverlays(this)) {
+                showOverlay(carPlayStyle = true)
+            } else {
+                requestOverlayPermission()
+            }
         }
         runCatching { startActivity(intent) }
             .onFailure { Toast.makeText(this, "打不开：${it.message}", Toast.LENGTH_SHORT).show() }
@@ -117,20 +123,21 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    /** 顶部居中的「重选系统」小胶囊：点一下回到选择页。 */
-    private fun showOverlay() {
+    /** 「重选系统」：CarPlay 首页右上角，和旁边「车机主页」同一套浅色圆角按钮样式。 */
+    private fun showOverlay(carPlayStyle: Boolean) {
         if (overlay != null) return
         val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val density = resources.displayMetrics.density
         val pill = TextView(this).apply {
             text = "重选系统"
-            setTextColor(Color.WHITE)
+            setTextColor(Color.parseColor("#1B2430"))
             textSize = 15f
             gravity = Gravity.CENTER
-            setPadding(48, 20, 48, 20)
+            setPadding((18 * density).toInt(), (12 * density).toInt(), (18 * density).toInt(), (12 * density).toInt())
             background = GradientDrawable().apply {
-                cornerRadius = 120f
-                setColor(Color.parseColor("#CC1D242E"))
-                setStroke(2, Color.parseColor("#44FFFFFF"))
+                cornerRadius = 12 * density
+                setColor(Color.parseColor("#E9EEF7"))
+                setStroke((1 * density).toInt(), Color.parseColor("#D3DBE8"))
             }
             setOnClickListener {
                 hideOverlay()
@@ -150,8 +157,10 @@ class MainActivity : ComponentActivity() {
                 or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             android.graphics.PixelFormat.TRANSLUCENT,
         ).apply {
-            gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-            y = 40
+            gravity = Gravity.TOP or Gravity.END
+            // 车机主页按钮在右上角，这个标签贴在它左边，垂直对齐。
+            x = (190 * density).toInt()
+            y = (24 * density).toInt()
         }
         runCatching { wm.addView(pill, params) }.onSuccess { overlay = pill }
     }
@@ -165,69 +174,84 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/** 选择页：左上角名字，中间三张等宽卡片，整块都可点。 */
+/** 选择页：左上角图标 + 「Car」渐变字标，中间三张等宽卡片，整块都可点；深浅色跟随系统。 */
 @Composable
 private fun SelectionScreen(onPick: (Int) -> Unit) {
-    val context = LocalContext.current
+    val dark = isSystemInDarkTheme()
+    val pageBg = if (dark) {
+        listOf(ComposeColor(0xFF0B0F14), ComposeColor(0xFF111A24))
+    } else {
+        listOf(ComposeColor(0xFFF5F8FD), ComposeColor(0xFFE7EEFA))
+    }
+    val cardBg = if (dark) ComposeColor(0xFF161D27) else ComposeColor.White
+    val cardBorder = if (dark) ComposeColor(0x22FFFFFF) else ComposeColor(0x1A0B1B2E)
+    val textColor = if (dark) ComposeColor.White else ComposeColor(0xFF14202E)
+    val gradient = if (dark) {
+        listOf(ComposeColor(0xFFFFFFFF), ComposeColor(0xFFCFE4FF), ComposeColor(0xFF3F82FF))
+    } else {
+        listOf(ComposeColor(0xFF9FCBFF), ComposeColor(0xFF3D82F5), ComposeColor(0xFF0F3FA6))
+    }
     Box(
         Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(ComposeColor(0xFF0B0F14), ComposeColor(0xFF111A24))
-                )
-            )
+            .background(Brush.verticalGradient(pageBg))
             .systemBarsPadding(),
     ) {
         Column(Modifier.fillMaxSize()) {
             Text(
-                "AllCarPlay",
-                color = ComposeColor.White,
-                fontSize = 40.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(start = 40.dp, top = 26.dp),
-            )
-            Text(
-                "选择要连接的系统",
-                color = ComposeColor(0xFF8B96A5),
-                fontSize = 16.sp,
-                modifier = Modifier.padding(start = 42.dp, top = 6.dp),
+                "Car",
+                style = TextStyle(
+                    fontSize = 52.sp,
+                    fontWeight = FontWeight.Bold,
+                    brush = Brush.verticalGradient(gradient),
+                ),
+                modifier = Modifier.padding(start = 40.dp, top = 22.dp),
             )
             Box(
                 Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = 40.dp, vertical = 28.dp),
+                    .padding(horizontal = 40.dp, vertical = 20.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.92f),
+                        .fillMaxHeight(0.88f),
                     horizontalArrangement = Arrangement.spacedBy(26.dp),
                 ) {
                     SystemCard(
                         label = "鸿蒙OS",
                         icon = painterResource(R.drawable.ic_hmcar),
                         accent = ComposeColor(0xFF2D7DF6),
+                        cardBg = cardBg,
+                        cardBorder = cardBorder,
+                        textColor = textColor,
                         modifier = Modifier.weight(1f),
                     ) { onPick(0) }
                     SystemCard(
                         label = "苹果IOS",
                         icon = painterResource(R.drawable.ic_apple),
-                        accent = ComposeColor(0xFFE8EBF0),
+                        iconTint = textColor,
+                        accent = ComposeColor(0xFF8A94A6),
+                        cardBg = cardBg,
+                        cardBorder = cardBorder,
+                        textColor = textColor,
                         modifier = Modifier.weight(1f),
                     ) { onPick(1) }
                     SystemCard(
                         label = "Android",
                         icon = painterResource(R.drawable.ic_android),
                         accent = ComposeColor(0xFF8BC34A),
+                        cardBg = cardBg,
+                        cardBorder = cardBorder,
+                        textColor = textColor,
                         iconSize = 152.dp,
                         modifier = Modifier.weight(1f),
                     ) { onPick(2) }
                 }
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(8.dp))
         }
     }
 }
@@ -237,7 +261,11 @@ private fun SystemCard(
     label: String,
     icon: Painter,
     accent: ComposeColor,
+    cardBg: ComposeColor,
+    cardBorder: ComposeColor,
+    textColor: ComposeColor,
     iconSize: Dp = 118.dp,
+    iconTint: ComposeColor? = null,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
@@ -245,8 +273,8 @@ private fun SystemCard(
         modifier
             .fillMaxHeight()
             .clip(RoundedCornerShape(22.dp))
-            .background(ComposeColor(0xFF161D27))
-            .border(1.dp, ComposeColor(0x22FFFFFF), RoundedCornerShape(22.dp))
+            .background(cardBg)
+            .border(1.dp, cardBorder, RoundedCornerShape(22.dp))
             .clickable(onClick = onClick)
             .padding(vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -260,13 +288,14 @@ private fun SystemCard(
                 painter = icon,
                 contentDescription = label,
                 contentScale = ContentScale.Fit,
+                colorFilter = iconTint?.let { ColorFilter.tint(it) },
                 modifier = Modifier.size(iconSize),
             )
         }
         Spacer(Modifier.height(18.dp))
         Text(
             label,
-            color = ComposeColor.White,
+            color = textColor,
             fontSize = 26.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
