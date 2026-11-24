@@ -45,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -221,6 +222,7 @@ private fun SelectionScreen(onPick: (Int) -> Unit) {
                         label = "Android",
                         icon = painterResource(R.drawable.ic_android),
                         accent = ComposeColor(0xFF8BC34A),
+                        iconSize = 152.dp,
                         modifier = Modifier.weight(1f),
                     ) { onPick(2) }
                 }
@@ -235,6 +237,7 @@ private fun SystemCard(
     label: String,
     icon: Painter,
     accent: ComposeColor,
+    iconSize: Dp = 118.dp,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
@@ -250,17 +253,14 @@ private fun SystemCard(
         verticalArrangement = Arrangement.Center,
     ) {
         Box(
-            Modifier
-                .size(132.dp)
-                .clip(RoundedCornerShape(28.dp))
-                .background(ComposeColor(0x10FFFFFF)),
+            Modifier.size(132.dp),
             contentAlignment = Alignment.Center,
         ) {
             Image(
                 painter = icon,
                 contentDescription = label,
                 contentScale = ContentScale.Fit,
-                modifier = Modifier.size(96.dp),
+                modifier = Modifier.size(iconSize),
             )
         }
         Spacer(Modifier.height(18.dp))
