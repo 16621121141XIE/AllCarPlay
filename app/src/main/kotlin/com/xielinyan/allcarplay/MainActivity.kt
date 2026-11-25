@@ -39,6 +39,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -89,9 +95,10 @@ class MainActivity : ComponentActivity() {
 
     private fun openSystem(index: Int) {
         val target = when (index) {
-            0 -> Target("io.github.gcbond.openhc", "io.github.gcbond.openhc.MainActivity")
-            1 -> Target("xielinyan.carplay.com", "com.shilapi.xcertplay.DiPlayActivity")
-            else -> Target("com.shilapi.xcertplay", null)
+            0 -> Target("com.xielinyan.allcarplay", "io.github.gcbond.openhc.MainActivity")
+            1 -> Target("com.xielinyan.allcarplay", "com.shilapi.xcertplay.DiPlayActivity")
+            // 安卓投屏：MiAuto（ICCOA CarLink 车机端接收，小米 CarWith / OPPO Car+ / vivo 等手机直接连）
+            else -> Target("com.xielinyan.allcarplay", "com.andrerinas.openheadunit.main.MainActivity")
         }
         val intent = if (target.activityName != null) {
             Intent().setClassName(target.packageName, target.activityName)
@@ -103,8 +110,8 @@ class MainActivity : ComponentActivity() {
             return
         }
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        // HmCar 与 CarPlay 都自带「重选系统」按钮，不再需要浮层；只有安卓投屏还没有自带按钮。
-        val needOverlay = index == 2
+        // 三个子系统都自带「重选系统」按钮，宿主不再挂悬浮窗（MiAuto 那个已经长在它自己首页上）。
+        val needOverlay = false
         if (needOverlay) {
             if (Settings.canDrawOverlays(this)) {
                 showOverlay(carPlayStyle = true)
@@ -178,10 +185,42 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/** 选择页：左上角「Car」渐变字标，三张系统卡片；横屏三张并排，竖屏上下排；深浅色跟随系统。 */
+/** 选择页：左上角「Car」渐变字标，三张系统卡片；横屏三张并排，竖屏上下排；深浅色跟随车机白天/黑夜。 */
+
+/** 车机现在是黑天还是白天：跟随系统 uiMode；HmCar 设置里手动选了浅色/深色时以它为准。 */
+private fun unitIsNight(context: Context): Boolean {
+    val mode = runCatching {
+        context.getSharedPreferences("openhc-settings", Context.MODE_PRIVATE).getInt("theme_mode", 0)
+    }.getOrDefault(0)
+    if (mode == 1) return false
+    if (mode == 2) return true
+    val uiMode = context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
+    return uiMode == android.content.res.Configuration.UI_MODE_NIGHT_YES
+}
+
 @Composable
 private fun SelectionScreen(onPick: (Int) -> Unit) {
-    val dark = isSystemInDarkTheme()
+    val context = LocalContext.current
+    var dark by remember { mutableStateOf(unitIsNight(context)) }
+    // 车机切白天/黑夜：配置一变立刻重画；另外每 15 秒核对一次，防止有车机只改状态不发广播。
+    DisposableEffect(context) {
+        val receiver = object : android.content.BroadcastReceiver() {
+            override fun onReceive(c: Context?, intent: Intent?) {
+                dark = unitIsNight(context)
+            }
+        }
+        runCatching {
+            context.registerReceiver(receiver, android.content.IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED))
+        }
+        onDispose { runCatching { context.unregisterReceiver(receiver) } }
+    }
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(15_000L)
+            val night = unitIsNight(context)
+            if (night != dark) dark = night
+        }
+    }
     val pageBg = if (dark) {
         listOf(ComposeColor(0xFF0B0F14), ComposeColor(0xFF111A24))
     } else {
@@ -190,10 +229,12 @@ private fun SelectionScreen(onPick: (Int) -> Unit) {
     val cardBg = if (dark) ComposeColor(0xFF161D27) else ComposeColor.White
     val cardBorder = if (dark) ComposeColor(0x22FFFFFF) else ComposeColor(0x1A0B1B2E)
     val textColor = if (dark) ComposeColor.White else ComposeColor(0xFF14202E)
+    // 和桌面图标上那个「Car」一样的蓝→深蓝渐变
+    // 亮蓝到深海军蓝，跨度拉大，字上能明显看出渐变
     val gradient = if (dark) {
-        listOf(ComposeColor(0xFFFFFFFF), ComposeColor(0xFFCFE4FF), ComposeColor(0xFF3F82FF))
+        listOf(ComposeColor(0xFFD9ECFF), ComposeColor(0xFF6FAEFF), ComposeColor(0xFF2A63E0))
     } else {
-        listOf(ComposeColor(0xFF9FCBFF), ComposeColor(0xFF3D82F5), ComposeColor(0xFF0F3FA6))
+        listOf(ComposeColor(0xFF63BCFF), ComposeColor(0xFF1B6DF0), ComposeColor(0xFF05256E))
     }
 
     BoxWithConstraints(
@@ -204,17 +245,18 @@ private fun SelectionScreen(onPick: (Int) -> Unit) {
     ) {
         val wide = maxWidth >= 640.dp
         Column(Modifier.fillMaxSize()) {
+            // 左上角字标：居中排，蓝→深蓝的横向渐变（和桌面图标同一个色相）
             Text(
                 "Car",
                 style = TextStyle(
-                    fontSize = if (wide) 50.sp else 38.sp,
+                    fontSize = if (wide) 54.sp else 32.sp,
                     fontWeight = FontWeight.Bold,
                     brush = Brush.verticalGradient(gradient),
+                    textAlign = TextAlign.Center,
                 ),
-                modifier = Modifier.padding(
-                    start = if (wide) 36.dp else 22.dp,
-                    top = if (wide) 18.dp else 12.dp,
-                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = if (wide) 4.dp else 2.dp),
             )
             Box(
                 Modifier
@@ -235,8 +277,8 @@ private fun SelectionScreen(onPick: (Int) -> Unit) {
                         horizontalArrangement = Arrangement.spacedBy(24.dp),
                     ) {
                         SystemCard(
-                            label = "鸿蒙OS",
-                            icon = painterResource(R.drawable.ic_hmcar),
+                            label = "HUAWEI",
+                            icon = painterResource(R.drawable.ic_huawei_petal),
                             accent = ComposeColor(0xFF2D7DF6),
                             cardBg = cardBg,
                             cardBorder = cardBorder,
@@ -244,7 +286,7 @@ private fun SelectionScreen(onPick: (Int) -> Unit) {
                             modifier = Modifier.weight(1f),
                         ) { onPick(0) }
                         SystemCard(
-                            label = "苹果IOS",
+                            label = "iPhone",
                             icon = painterResource(R.drawable.ic_apple),
                             iconTint = textColor,
                             accent = ComposeColor(0xFF8A94A6),
@@ -260,33 +302,33 @@ private fun SelectionScreen(onPick: (Int) -> Unit) {
                             cardBg = cardBg,
                             cardBorder = cardBorder,
                             textColor = textColor,
-                            iconSize = 120.dp,
+                            iconSize = 92.dp,
                             modifier = Modifier.weight(1f),
                         ) { onPick(2) }
                     }
                 } else {
                     Column(
                         Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         SystemCardRow(
-                            label = "鸿蒙OS",
-                            icon = painterResource(R.drawable.ic_hmcar),
+                            label = "HUAWEI",
+                            icon = painterResource(R.drawable.ic_huawei_petal),
                             accent = ComposeColor(0xFF2D7DF6),
                             cardBg = cardBg,
                             cardBorder = cardBorder,
                             textColor = textColor,
-                            modifier = Modifier.fillMaxWidth().height(112.dp),
+                            modifier = Modifier.fillMaxWidth().height(96.dp),
                         ) { onPick(0) }
                         SystemCardRow(
-                            label = "苹果IOS",
+                            label = "iPhone",
                             icon = painterResource(R.drawable.ic_apple),
                             iconTint = textColor,
                             accent = ComposeColor(0xFF8A94A6),
                             cardBg = cardBg,
                             cardBorder = cardBorder,
                             textColor = textColor,
-                            modifier = Modifier.fillMaxWidth().height(112.dp),
+                            modifier = Modifier.fillMaxWidth().height(96.dp),
                         ) { onPick(1) }
                         SystemCardRow(
                             label = "Android",
@@ -295,7 +337,7 @@ private fun SelectionScreen(onPick: (Int) -> Unit) {
                             cardBg = cardBg,
                             cardBorder = cardBorder,
                             textColor = textColor,
-                            modifier = Modifier.fillMaxWidth().height(112.dp),
+                            modifier = Modifier.fillMaxWidth().height(96.dp),
                         ) { onPick(2) }
                     }
                 }
@@ -361,7 +403,7 @@ private fun SystemCard(
     }
 }
 
-/** 竖屏用的横排卡片：左边图标，右边系统名，整卡可点。 */
+/** 竖屏卡片：图标居中，系统名放在图标正下方，整卡可点。 */
 @Composable
 private fun SystemCardRow(
     label: String,
@@ -374,41 +416,41 @@ private fun SystemCardRow(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    Row(
+    Column(
         modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
             .background(cardBg)
             .border(1.dp, cardBorder, RoundedCornerShape(18.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 22.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Box(Modifier.size(92.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(42.dp), contentAlignment = Alignment.Center) {
             Image(
                 painter = icon,
                 contentDescription = label,
                 contentScale = ContentScale.Fit,
                 colorFilter = iconTint?.let { ColorFilter.tint(it) },
-                modifier = Modifier.size(72.dp),
+                modifier = Modifier.fillMaxSize(),
             )
         }
-        Spacer(Modifier.width(18.dp))
-        Column(Modifier.weight(1f)) {
-            Text(
-                label,
-                color = textColor,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(Modifier.height(6.dp))
-            Box(
-                Modifier
-                    .width(30.dp)
-                    .height(3.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(accent.copy(alpha = 0.75f))
-            )
-        }
+        Spacer(Modifier.height(8.dp))
+        Text(
+            label,
+            color = textColor,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(3.dp))
+        Box(
+            Modifier
+                .width(26.dp)
+                .height(3.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(accent.copy(alpha = 0.75f))
+        )
     }
 }

@@ -1,0 +1,286 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/da_background"
+    android:orientation="vertical">
+
+        <!-- Header: brand + return to the car's own home screen -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="32dp"
+            android:paddingEnd="32dp"
+            android:paddingTop="32dp"
+            android:paddingBottom="18dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_android_car" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:text="@string/da_brand"
+                android:textColor="@color/da_text"
+                android:textSize="22sp" />
+
+            <!-- 和 CarPlay 同一套按钮：实底 + 1dp 描边 + 14dp 圆角，文字用系统 sans 中等字重。 -->
+
+            <TextView
+                android:id="@+id/reselect_button"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/bg_cp_secondary"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="@string/da_reselect_system"
+                android:textColor="@color/da_text"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/exit_button"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:background="@drawable/bg_cp_secondary"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="@string/da_close"
+                android:textColor="@color/da_text"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+    <!-- 标题和「重选系统」固定在顶栏，只有下面的内容跟着手指滚。 -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="32dp"
+            android:paddingEnd="32dp"
+            android:paddingBottom="32dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:baselineAligned="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingTop="24dp"
+            android:paddingBottom="16dp">
+
+            <!-- Left: link status + the auto-issued pairing code -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.7"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.16"
+                    android:text="@string/da_tagline"
+                    android:textColor="@color/da_accent"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/da_card"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:letterSpacing="0.1"
+                        android:text="@string/da_wireless"
+                        android:textColor="@color/da_accent"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/connection_status"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:accessibilityLiveRegion="polite"
+                        android:text="@string/da_ready"
+                        android:textColor="@color/da_text"
+                        android:textSize="24sp" />
+
+                    <!-- Auto pairing code. Visible only while the SDK has handed one out; the
+                         fragment toggles this whole block so the card does not jump on connect. -->
+                    <LinearLayout
+                        android:id="@+id/pairing_code_block"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:letterSpacing="0.1"
+                            android:text="@string/da_pin_label"
+                            android:textColor="@color/da_accent"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/pairing_code"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:fontFamily="monospace"
+                            android:letterSpacing="0.18"
+                            android:textColor="@color/da_text"
+                            android:textSize="52sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Manual retry for the pairing code. The link already re-broadcasts every
+                         30 seconds, but a phone whose dialog was dismissed will not come back on
+                         its own, and waiting out the cycle is a poor experience from the driver's
+                         seat. Hidden once connected (see HomeFragment.render). -->
+                    <TextView
+                        android:id="@+id/refresh_pin_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="44dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_cp_secondary"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:paddingStart="18dp"
+                        android:paddingEnd="18dp"
+                        android:text="@string/da_refresh_pin"
+                        android:textColor="@color/da_accent"
+                        android:textSize="15sp" />
+
+                    <!-- Contextual only: appears when a phone is already connected, so leaving the
+                         projection screen does not strand the user on a screen with no way back. -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/wifi_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="68dp"
+                        android:layout_marginTop="14dp"
+                        android:gravity="center"
+                        android:text="@string/da_open"
+                        android:textAllCaps="false"
+                        android:textColor="@color/da_background"
+                        android:textSize="18sp"
+                        android:visibility="gone"
+                        app:backgroundTint="@color/da_accent"
+                        app:cornerRadius="20dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:lineSpacingExtra="4dp"
+                        android:text="@string/da_hint"
+                        android:textColor="@color/da_muted"
+                        android:textSize="15sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Right: settings -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="40dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="20dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_android_car" />
+
+                <LinearLayout
+                    android:id="@+id/settings_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                        android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_cp_secondary"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_settings_white"
+                        app:tint="@color/da_accent" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:maxLines="1"
+                        android:text="@string/da_settings"
+                        android:textColor="@color/da_text"
+                        android:textSize="17sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center"
+                    android:text="@string/da_settings_hint"
+                    android:textColor="@color/da_muted"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Legal footer: MiAuto is an independent project, not a BYD / ICCOA / Xiaomi product. -->
+        <TextView
+            android:id="@+id/legal_footer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:alpha="0.7"
+            android:lineSpacingExtra="3dp"
+            android:text="@string/da_legal"
+            android:textColor="@color/da_muted"
+            android:textSize="12sp" />
+    
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

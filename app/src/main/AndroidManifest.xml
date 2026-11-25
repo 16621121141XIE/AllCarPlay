@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- 「重选系统」用悬浮小按钮，需要浮在其他应用上面。 -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
+        android:name="com.andrerinas.openheadunit.App"
+        android:usesCleartextTraffic="true"
         android:label="AllCarPlay"
-        android:icon="@mipmap/ic_launcher"
-        android:theme="@style/Theme.AllCarPlay">
+        android:icon="@mipmap/ic_allcar"
+        android:theme="@style/Theme.AllCarPlay"
+        tools:replace="android:name,android:label,android:icon,android:theme,android:usesCleartextTraffic"
+        android:roundIcon="@mipmap/ic_allcar"
+        tools:ignore="GoogleAppIndexingWarning">
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
@@ -18,5 +24,31 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- CarPlay 的首页也在这个包里，不再单独占一个桌面图标：去掉它自带的 LAUNCHER 入口。 -->
+        <activity android:name="com.shilapi.xcertplay.DiPlayActivity">
+            <intent-filter tools:node="remove">
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 安卓投屏的首页也在同一个包里：去掉它自带的桌面入口，只留 AllCarPlay 一个图标。 -->
+        <activity android:name="com.andrerinas.openheadunit.main.MainActivity">
+            <intent-filter tools:node="remove">
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <receiver
+            android:name="com.shilapi.xcertplay.PhoneBluetoothReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

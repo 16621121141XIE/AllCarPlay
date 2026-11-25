@@ -1,0 +1,7 @@
+# ninja log v5
+0	114	1795535818173467967	CMakeFiles/usbhelper.dir/usbhelper.c.o	f6614c0095ecad51
+8	120	1795535818182382602	CMakeFiles/local_hotspot_radio.dir/local_hotspot_radio.c.o	47a4fa397ab88841
+114	185	1795535818244347585	/Users/xielinyan/Doubao/chats/2026-11-23/new-chat-1/repos/AllCarPlay/subsystems/MiAuto/app/build/intermediates/cxx/Debug/3m11b5n2/obj/x86/libusbhelper.so	99d0fa441078ff44
+120	203	1795535818265285607	/Users/xielinyan/Doubao/chats/2026-11-23/new-chat-1/repos/AllCarPlay/subsystems/MiAuto/app/build/intermediates/cxx/Debug/3m11b5n2/obj/x86/liblocal_hotspot_radio.so	f450d54b944741ef
+4	354	1795535818412198973	CMakeFiles/hur_soft_hevc.dir/ffmpeg_hevc_decoder.cpp.o	bffd647c71e83972
+357	423	1795535818483111340	/Users/xielinyan/Doubao/chats/2026-11-23/new-chat-1/repos/AllCarPlay/subsystems/MiAuto/app/build/intermediates/cxx/Debug/3m11b5n2/obj/x86/libhur_soft_hevc.so	9d5fe0f49e929293

@@ -1,0 +1,5 @@
+/Users/xielinyan/Doubao/chats/2026-11-23/new-chat-1/repos/AllCarPlay/subsystems/MiAuto/app/.cxx/Debug/3m11b5n2/armeabi-v7a/CMakeFiles/usbhelper.dir
+/Users/xielinyan/Doubao/chats/2026-11-23/new-chat-1/repos/AllCarPlay/subsystems/MiAuto/app/.cxx/Debug/3m11b5n2/armeabi-v7a/CMakeFiles/hur_soft_hevc.dir
+/Users/xielinyan/Doubao/chats/2026-11-23/new-chat-1/repos/AllCarPlay/subsystems/MiAuto/app/.cxx/Debug/3m11b5n2/armeabi-v7a/CMakeFiles/local_hotspot_radio.dir
+/Users/xielinyan/Doubao/chats/2026-11-23/new-chat-1/repos/AllCarPlay/subsystems/MiAuto/app/.cxx/Debug/3m11b5n2/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/xielinyan/Doubao/chats/2026-11-23/new-chat-1/repos/AllCarPlay/subsystems/MiAuto/app/.cxx/Debug/3m11b5n2/armeabi-v7a/CMakeFiles/rebuild_cache.dir

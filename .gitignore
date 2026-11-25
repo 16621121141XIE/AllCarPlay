@@ -5,3 +5,9 @@ local.properties
 .idea/
 app/build/
 dist/*.apk
+# 本地签名资产：MFi 离线证书与私钥，不进公开仓库
+app/src/main/assets/offline-mfi/
+# 预编译 AAR 与已经停用的中间产物
+app/libs/*.aar
+# 构建日志与临时包
+*.log
