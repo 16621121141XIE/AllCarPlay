@@ -13,7 +13,7 @@
 ## 下载
 
 APK 在 Releases 页面，选最新一版下载即可：
-<https://github.com/16621121141XIE/AllCarPlay/releases/latest>
+<https://github.com/16621121141XIE/allcarplay/releases/latest>
 
 ## 工程结构
 
