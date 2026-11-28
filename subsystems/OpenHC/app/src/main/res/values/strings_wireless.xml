@@ -36,7 +36,7 @@
     <string name="wireless_hint_stopping">正在断开连接，请稍候…</string>
 
     <!-- 开始不了的原因 -->
-    <string name="wireless_notice_bt_address">没读到这台车机的真实蓝牙地址，二维码里的地址手机找不到车机。请到「设置 → 车机蓝牙地址」点「自动获取」，或填写车机的真实蓝牙地址（车机「设置 → 关于」里能看到）。</string>
+    <string name="wireless_notice_bt_address">没读到这台车机的真实蓝牙地址，二维码里的地址手机找不到车机。请到「设置 → 车机蓝牙地址」点「自动获取」，扫到这台车机点一下就填好；扫不到再手填一次。</string>
     <string name="wireless_notice_bt_unsupported">这台车机没有蓝牙，用不了无线连接。</string>
     <string name="wireless_notice_bt_off">请先打开车机蓝牙。</string>
     <string name="wireless_notice_hotspot_unsupported">这台车机是安卓 8.0 以下，没有本地热点，用不了无线连接。请插数据线连接。</string>

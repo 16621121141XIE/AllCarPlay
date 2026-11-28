@@ -36,6 +36,8 @@
         android:name="android.permission.BLUETOOTH_ADMIN"
         android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- 设置页「扫描车机蓝牙」：扫附近的蓝牙设备（读对端地址），只用来把车机地址抄进配置。 -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <!--
         无线自动回连：车机发 BLE 广播、挂 GATT 服务，让配对过的手机靠近时自己连上来。安卓 12 起发广播要运行时权限
         （也在「附近的设备」里），开始无线连接时一起申请；拒绝了照样能扫码，只是不能自动回连。更早用上面的旧权限。
