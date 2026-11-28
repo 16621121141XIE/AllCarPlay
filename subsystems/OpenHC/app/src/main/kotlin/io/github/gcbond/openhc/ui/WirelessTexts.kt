@@ -38,8 +38,12 @@ internal fun wirelessHint(state: WirelessUiState): String {
     return when (state.phase) {
         WirelessPhase.IDLE -> stringResource(R.string.wireless_hint_idle)
         WirelessPhase.PREPARING -> stringResource(R.string.wireless_hint_preparing)
-        WirelessPhase.WAITING_FOR_SCAN ->
-            stringResource(if (state.autoReconnect) R.string.wireless_hint_auto else R.string.wireless_hint_scan)
+        WirelessPhase.WAITING_FOR_SCAN -> when {
+            // 没有二维码（读不到车机自身蓝牙地址）：车机只发 BLE 广播，让手机自己弹「发现车机」。
+            state.qrCode.isNullOrBlank() -> stringResource(R.string.wireless_hint_broadcast)
+            state.autoReconnect -> stringResource(R.string.wireless_hint_auto)
+            else -> stringResource(R.string.wireless_hint_scan)
+        }
         WirelessPhase.CONNECTING -> stringResource(R.string.hint_connecting)
         // 投屏段与有线相同，沿用有线的说明（分辨率、帧率、等第一帧、手机没开放触摸）。
         WirelessPhase.PROJECTING -> {

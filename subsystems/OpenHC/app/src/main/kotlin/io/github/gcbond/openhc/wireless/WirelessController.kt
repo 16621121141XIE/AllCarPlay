@@ -446,8 +446,13 @@ class WirelessController(
         // 拿到的不是真实硬件地址（系统不让读、又没探到）时，二维码里写的就是个假地址：手机按它根本找不到车机。
         // 与其给一张连不上的二维码，不如直说，让车主在设置里「自动获取」或填真实地址。
         if (BluetoothAddressPolicy.isLocallyAdministered(address)) {
-            Log.w(TAG, "没有真实车机蓝牙地址（用的是 $address），二维码不能生成")
-            return blocked(kind, WirelessNotice.BluetoothAddressMissing, AutoHold.BLUETOOTH_ADDRESS_MISSING)
+            // 手动「开始连接」不再因为读不到自身地址就拦下来：改成只发 BLE 广播（手机上会弹「发现车机」），
+            // 二维码拼不出来就不显示，靠屏幕上的连接码配对。自动回连仍然拦。
+            if (kind != Kind.MANUAL) {
+                Log.w(TAG, "没有真实车机蓝牙地址（用的是 $address），二维码不能生成")
+                return blocked(kind, WirelessNotice.BluetoothAddressMissing, AutoHold.BLUETOOTH_ADDRESS_MISSING)
+            }
+            Log.w(TAG, "没有真实车机蓝牙地址（用的是 $address）：这次只发 BLE 广播，不生成二维码")
         }
         val adapter = BluetoothStatus.adapter(app)
             ?: return blocked(kind, WirelessNotice.BluetoothUnsupported, AutoHold.BLUETOOTH_OFF)
@@ -487,6 +492,14 @@ class WirelessController(
         val beacon = if (kind == Kind.RECONNECT) null else beaconPlan(kind, adapter)
         if (kind == Kind.AUTO && beacon == null) {
             return blocked(kind, WirelessNotice.StartFailed("发不了 BLE 广播"), AutoHold.ADVERTISING_UNSUPPORTED)
+        }
+        // 手动开始、又没有真实地址时，唯一的发现手段就是 BLE 广播；广播也发不了就直说，不要假装在等手机。
+        if (kind == Kind.MANUAL && beacon == null && BluetoothAddressPolicy.isLocallyAdministered(address)) {
+            return blocked(
+                kind,
+                WirelessNotice.StartFailed("这台车机发不了蓝牙广播，也读不到自己的蓝牙地址：请到「设置 → 车机蓝牙地址」填一次"),
+                AutoHold.ADVERTISING_UNSUPPORTED,
+            )
         }
         val config = try {
             WirelessReceiverConfig(

@@ -24,6 +24,7 @@
     <string name="wireless_hint_idle">点击【开始连接】按钮，使用手机扫码完成连接。</string>
     <string name="wireless_hint_preparing">正在打开蓝牙监听…</string>
     <string name="wireless_hint_scan">用华为手机扫描下面的二维码。第一次连接这台车机需要扫码配对，连接码已经包含在二维码里。</string>
+    <string name="wireless_hint_broadcast">车机正在广播蓝牙：手机打开蓝牙和 WLAN、靠近车机，手机上会弹出「发现车机」，点连接后输入下面这 6 位连接码。</string>
     <string name="wireless_hint_bt_handshake">手机已经通过蓝牙连上，正在握手…</string>
     <string name="wireless_hint_waiting_auth">握手完成，等待手机发起认证…</string>
     <string name="wireless_hint_auth_pairing">第一次连接这台车机，正在配对…</string>

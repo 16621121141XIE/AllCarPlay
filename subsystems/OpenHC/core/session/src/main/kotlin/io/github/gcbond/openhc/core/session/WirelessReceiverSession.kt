@@ -199,7 +199,7 @@ class WirelessReceiverSession internal constructor(
         ep.state = State.OPEN
         ep.port = port
         when (ep) {
-            controlListener -> out.add(WirelessEvent.PairingReady(config.qrCode(pinCode), pinCode))
+            controlListener -> out.add(WirelessEvent.PairingReady(runCatching { config.qrCode(pinCode) }.getOrDefault(""), pinCode))
             authListener -> onAuthListening(port, nowMillis, out)
         }
     }

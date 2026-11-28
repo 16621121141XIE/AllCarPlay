@@ -63,7 +63,7 @@ internal fun WirelessCard(
     modifier: Modifier = Modifier,
 ) {
     val compact = LocalCompact.current
-    val qr = state.qrCode.takeIf { state.phase == WirelessPhase.WAITING_FOR_SCAN }
+    val qr = state.qrCode?.takeIf { it.isNotBlank() && state.phase == WirelessPhase.WAITING_FOR_SCAN }
     CardBox(modifier) {
         CardSectionHeader(stringResource(R.string.home_wireless_header))
         if (qr != null) {
