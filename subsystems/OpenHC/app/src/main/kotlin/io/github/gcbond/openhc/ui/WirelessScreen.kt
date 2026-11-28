@@ -297,7 +297,10 @@ private fun WirelessButtons(
                 PillButton(stringResource(R.string.wireless_action_enable_bt), actions.onEnableBluetooth)
                 PillButton(start, actions.onStart)
             }
-            WirelessNotice.BluetoothAddressMissing -> PillButton(start, actions.onStart, enabled = identityLoaded)
+            WirelessNotice.BluetoothAddressMissing -> {
+                PillButton(stringResource(R.string.wireless_action_open_settings), actions.onOpenSettings)
+                PillButton(start, actions.onStart, enabled = identityLoaded)
+            }
             WirelessNotice.WiredOnly ->
                 PillButton(stringResource(R.string.wireless_action_open_settings), actions.onOpenSettings)
             is WirelessNotice.TrustStoreCorrupt ->

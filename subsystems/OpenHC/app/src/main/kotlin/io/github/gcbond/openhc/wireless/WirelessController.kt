@@ -443,9 +443,11 @@ class WirelessController(
         if (bluetooth.source == BluetoothSource.SYSTEM_PROPERTY && manual != null && manual != address) {
             Log.i(TAG, "手填的蓝牙地址和系统里读到的不同：无线用系统里的真实地址，手填的只用于有线")
         }
-        val addressMismatch = BluetoothAddressPolicy.isLocallyAdministered(address)
-        if (addressMismatch) {
-            Log.w(TAG, "读不到系统里的蓝牙地址，用的是手填的；它像是编出来的地址，不是车机真实地址时扫码后不会有反应")
+        // 拿到的不是真实硬件地址（系统不让读、又没探到）时，二维码里写的就是个假地址：手机按它根本找不到车机。
+        // 与其给一张连不上的二维码，不如直说，让车主在设置里「自动获取」或填真实地址。
+        if (BluetoothAddressPolicy.isLocallyAdministered(address)) {
+            Log.w(TAG, "没有真实车机蓝牙地址（用的是 $address），二维码不能生成")
+            return blocked(kind, WirelessNotice.BluetoothAddressMissing, AutoHold.BLUETOOTH_ADDRESS_MISSING)
         }
         val adapter = BluetoothStatus.adapter(app)
             ?: return blocked(kind, WirelessNotice.BluetoothUnsupported, AutoHold.BLUETOOTH_OFF)
@@ -528,7 +530,7 @@ class WirelessController(
         )
         Log.i(TAG, "第 ${current.id} 次无线连接的清晰度：${clarity.key}，声明码率 ${VideoClarity.describe(config.display.bitrate)}")
         setAutoHold(null)
-        apply(WirelessSignal.AttemptStarted(current.id, addressMismatch, autoReconnect = kind == Kind.AUTO, direct = directGroup))
+        apply(WirelessSignal.AttemptStarted(current.id, false, autoReconnect = kind == Kind.AUTO, direct = directGroup))
         current.runner.start()
         watchTermination(current)
     }

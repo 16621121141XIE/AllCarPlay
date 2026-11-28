@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,13 +14,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.rememberCoroutineScope
 import io.github.gcbond.openhc.R
 import io.github.gcbond.openhc.connection.BluetoothAddressPolicy
+import io.github.gcbond.openhc.connection.DeviceInfo
 import io.github.gcbond.openhc.connection.BluetoothSource
 import io.github.gcbond.openhc.settings.AppSettings
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * 「连接方式」组里的车机蓝牙地址：一行「车机蓝牙地址 [当前地址 ›]」，说明里写来源；点它在下面展开手动填写（保存、清除）。
@@ -27,8 +34,12 @@ import io.github.gcbond.openhc.settings.AppSettings
  */
 @Composable
 internal fun BluetoothAddressSection(settings: AppSettings, systemBluetoothAddress: String?) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var savedManual by remember { mutableStateOf(settings.manualBluetoothAddress) }
     var manualText by remember { mutableStateOf(savedManual ?: "") }
+    var probing by remember { mutableStateOf(false) }
+    var probeMessage by remember { mutableStateOf<String?>(null) }
     val current = BluetoothAddressPolicy.choose(systemBluetoothAddress, savedManual)
     var editing by rememberSaveable { mutableStateOf(current.source == BluetoothSource.UNAVAILABLE) }
 
@@ -64,6 +75,29 @@ internal fun BluetoothAddressSection(settings: AppSettings, systemBluetoothAddre
             modifier = Modifier.fillMaxWidth(),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            // 自动向车机要真实地址：查到了直接存成车机地址，车主不用自己抄。
+            ActionButton(
+                if (probing) stringResource(R.string.settings_bt_probe_running) else stringResource(R.string.settings_bt_probe),
+                onClick = {
+                    if (probing) return@ActionButton
+                    probing = true
+                    probeMessage = null
+                    scope.launch {
+                        val found = withContext(Dispatchers.IO) { DeviceInfo.probe(context, fresh = true) }
+                        probing = false
+                        if (found == null) {
+                            probeMessage = context.getString(R.string.settings_bt_probe_failed)
+                        } else {
+                            settings.manualBluetoothAddress = found.address
+                            savedManual = found.address
+                            manualText = found.address
+                            probeMessage = context.getString(R.string.settings_bt_probe_ok, found.address, found.source)
+                        }
+                    }
+                },
+                kind = ActionKind.NORMAL,
+                enabled = !probing,
+            )
             ActionButton(
                 stringResource(R.string.action_save),
                 onClick = {
@@ -80,9 +114,11 @@ internal fun BluetoothAddressSection(settings: AppSettings, systemBluetoothAddre
                     settings.manualBluetoothAddress = null
                     savedManual = null
                     manualText = ""
+                    probeMessage = null
                 },
                 enabled = savedManual != null,
             )
         }
+        probeMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = if (it == context.getString(R.string.settings_bt_probe_failed)) Palette.Warn else Palette.Text) }
     }
 }

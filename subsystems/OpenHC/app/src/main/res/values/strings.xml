@@ -126,6 +126,10 @@
     <string name="settings_bt_current_unavailable">当前：没有取到，按 02:00:00:00:00:00 处理（有线照样能连）</string>
     <string name="settings_bt_manual_label">手动填写（格式 AA:BB:CC:DD:EE:FF）</string>
     <string name="settings_bt_invalid">格式不对，或者是占位地址</string>
+    <string name="settings_bt_probe">自动获取</string>
+    <string name="settings_bt_probe_running">正在获取…</string>
+    <string name="settings_bt_probe_ok">已从车机读到 %1$s（来源：%2$s），已保存</string>
+    <string name="settings_bt_probe_failed">这台车机没把蓝牙地址开放给应用（要 root 或系统权限才读得到）。可以在车机「设置 → 关于」里看到后填到上面，或插上 adb 用 settings get secure bluetooth_address 读。</string>
     <string name="settings_bt_hint">有线连接：手填了有效地址时优先用手填的，清空就改用车机系统里读到的。无线连接：车机系统里读得到地址时一律用系统的（手机要拿它直接连车机蓝牙，必须是真地址），读不到才用手填的。地址变了，手机会把车机当成另一台车，需要重新输入连接码配对。</string>
 
     <!-- 通知 -->
