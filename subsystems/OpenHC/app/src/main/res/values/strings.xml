@@ -127,6 +127,8 @@
     <string name="settings_bt_manual_label">手动填写（格式 AA:BB:CC:DD:EE:FF）</string>
     <string name="settings_bt_invalid">格式不对，或者是占位地址</string>
     <string name="settings_bt_probe">自动获取</string>
+    <string name="settings_bt_diagnose">探测详情</string>
+    <string name="settings_bt_diagnose_title">各条路的结果（只读，不会改动任何设置）：</string>
     <string name="settings_bt_probe_running">正在获取…</string>
     <string name="settings_bt_probe_ok">已从车机读到 %1$s（来源：%2$s），已保存</string>
     <string name="settings_bt_probe_failed">这台车机没把蓝牙地址开放给应用（要 root 或系统权限才读得到）。可以在车机「设置 → 关于」里看到后填到上面，或插上 adb 用 settings get secure bluetooth_address 读。</string>

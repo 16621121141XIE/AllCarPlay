@@ -40,6 +40,7 @@ internal fun BluetoothAddressSection(settings: AppSettings, systemBluetoothAddre
     var manualText by remember { mutableStateOf(savedManual ?: "") }
     var probing by remember { mutableStateOf(false) }
     var probeMessage by remember { mutableStateOf<String?>(null) }
+    var details by remember { mutableStateOf<List<String>?>(null) }
     val current = BluetoothAddressPolicy.choose(systemBluetoothAddress, savedManual)
     var editing by rememberSaveable { mutableStateOf(current.source == BluetoothSource.UNAVAILABLE) }
 
@@ -99,6 +100,19 @@ internal fun BluetoothAddressSection(settings: AppSettings, systemBluetoothAddre
                 enabled = !probing,
             )
             ActionButton(
+                stringResource(R.string.settings_bt_diagnose),
+                onClick = {
+                    if (probing) return@ActionButton
+                    probing = true
+                    probeMessage = null
+                    scope.launch {
+                        details = withContext(Dispatchers.IO) { DeviceInfo.diagnose(context) }
+                        probing = false
+                    }
+                },
+                enabled = !probing,
+            )
+            ActionButton(
                 stringResource(R.string.action_save),
                 onClick = {
                     settings.manualBluetoothAddress = normalized
@@ -120,5 +134,11 @@ internal fun BluetoothAddressSection(settings: AppSettings, systemBluetoothAddre
             )
         }
         probeMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = if (it == context.getString(R.string.settings_bt_probe_failed)) Palette.Warn else Palette.Text) }
+        details?.let { lines ->
+            Text(stringResource(R.string.settings_bt_diagnose_title), style = MaterialTheme.typography.labelLarge, color = Palette.Text)
+            lines.forEach { line ->
+                Text(line, style = MaterialTheme.typography.bodySmall, color = Palette.Muted)
+            }
+        }
     }
 }
