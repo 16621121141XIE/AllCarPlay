@@ -46,7 +46,8 @@ internal class WirelessStartFlow(
         val askNotifications = sdk >= Build.VERSION_CODES.TIRAMISU && !settings.notificationPermissionAsked &&
             !granted(WirelessPermissions.POST_NOTIFICATIONS)
         // 广播权限被拒过也照样再问（系统拒绝两次后自己就不再弹框）：没有它就不能自动回连。
-        val askAdvertise = wirelessPrefs.autoReconnect && WirelessPermissions.advertise(sdk).any { !granted(it) }
+        // 手动「开始连接」也要发 BLE 广播（手机靠广播发现车机），所以要一起申请广播权限。
+        val askAdvertise = WirelessPermissions.advertise(sdk).any { !granted(it) }
         if (missing.isEmpty() && !askNotifications && !askAdvertise) {
             controller().start()
             return
